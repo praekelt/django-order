@@ -2,11 +2,12 @@ from django.conf import settings
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 
+from order import managers
 from order import models as order_models
-from order.managers import OrderedManager
 
 csrf_protect_m = method_decorator(csrf_protect)
 
@@ -87,9 +88,9 @@ def create_order_classes(related_class, order_field_names):
     # Register admin model.
     admin.site.register(model, Admin)
         
-    # Add ordered_objects manager to related model.
-    related_class.add_to_class('ordered_objects', OrderedManager())
-    
+    # Add custom_order method to base QuerySet.
+    setattr(QuerySet, 'custom_order', managers.custom_order)
+
     # Return created model class.
     return model
 
