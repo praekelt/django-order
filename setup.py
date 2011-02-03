@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='django-order',
+    name='django-arrange',
     version='0.0.2.a',
-    description='Django app providing arbitrary, admin user specified, object ordering.',
+    description='Django app providing arbitrary, admin user specified, object arranging.',
     long_description = open('README.rst', 'r').read() + open('AUTHORS.rst', 'r').read() + open('CHANGELOG.rst', 'r').read(),
     author='Praekelt Foundation',
     author_email='dev@praekelt.com',
     license='BSD',
-    url='http://github.com/praekelt/django-order',
+    url='http://github.com/praekelt/django-arrange',
     packages = find_packages(),
     include_package_data=True,
     classifiers = [
