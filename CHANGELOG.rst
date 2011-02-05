@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.2.a
--------
+0.0.4
+-----
 #.Initial public release.
 
