@@ -63,7 +63,7 @@ def create_order_classes(related_class, order_field_names):
 
         def item_link(self, obj):
             url = reverse('admin:%s_%s_change' % (labels['app'], labels['model'].lower()), args=(obj.item.id,))
-            return '<a href="%s">%s</a>' % (url, obj.item.title)
+            return '<a href="%s">%s</a>' % (url, str(obj.item))
         item_link.allow_tags = True
         item_link.short_description = 'Item'
     
@@ -117,7 +117,7 @@ def resolve_labels(cls):
     labels['module_app'] = cls.__module__.replace('.models', '')
 
     # Resolve app label.
-    labels['app'] = '.'.join(labels['module_app'].split('.')[1:])
+    labels['app'] = labels['module_app'].split('.')[-1]
 
     # Resolve model label
     labels['model'] = cls._meta.object_name
