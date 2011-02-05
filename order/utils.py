@@ -6,38 +6,38 @@ from django.db.models.query import QuerySet
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 
-from arrange import managers
-from arrange import models as arrange_models
+from order import managers
+from order import models as order_models
 
 csrf_protect_m = method_decorator(csrf_protect)
 
-def create_arrange_classes(related_class, arrange_field_names):
+def create_order_classes(related_class, order_field_names):
     """
-    Create arrange model and admin class. 
-    Add arrange model to arrange.models module and register admin class.
-    Connect arrange queryset method to QuerySet
+    Create order model and admin class. 
+    Add order model to order.models module and register admin class.
+    Connect ordered_objects manager to related model.
     """
     # Resolve labels for related class.
     labels = resolve_labels(related_class)
             
     # Dynamic Classes
-    class ArrangeItemBase(models.Model):
+    class OrderItemBase(models.Model):
         """
-        Dynamic arrange class base.
+        Dynamic order class base.
         """
         item = models.ForeignKey(related_class)
         timestamp = models.DateTimeField(auto_now=True)
     
         class Meta:
             abstract = True
-            app_label = 'arrange'
+            app_label = 'order'
    
     class Admin(admin.ModelAdmin):
         """
-        Dynamic arrange admin class.
+        Dynamic order admin class.
         """
-        list_display = ('item_link',) + tuple(arrange_field_names)
-        list_editable = arrange_field_names
+        list_display = ('item_link',) + tuple(order_field_names)
+        list_editable = order_field_names
 
         def get_model_perms(self, request):
             """
@@ -56,9 +56,9 @@ def create_arrange_classes(related_class, arrange_field_names):
                 'related_opts': related_class._meta,
             })
 
-            # XXX: Sanitize arrangement on list save.
+            # XXX: Sanitize order on list save.
             #if (request.method == "POST" and self.list_editable and '_save' in request.POST):
-            #    sanitize_arrangement(self.model)
+            #    sanitize_order(self.model)
             return result
 
         def item_link(self, obj):
@@ -69,41 +69,41 @@ def create_arrange_classes(related_class, arrange_field_names):
     
     # Set up a dictionary to simulate declarations within a class. 
     attrs = {
-        '__module__': 'arrange.models', 
+        '__module__': 'order.models', 
     }
     
-    # Create provided arrange fields and add to attrs.
+    # Create provided order fields and add to attrs.
     fields = {}
-    for field in arrange_field_names:
+    for field in order_field_names:
         fields[field] = models.IntegerField()
     attrs.update(fields)
 
     # Create the class which automatically triggers Django model processing.
-    arrange_item_class_name = resolve_arrange_item_class_name(related_class)
-    model = type(arrange_item_class_name, (ArrangeItemBase, ), attrs)
+    order_item_class_name = resolve_order_item_class_name(related_class)
+    model = type(order_item_class_name, (OrderItemBase, ), attrs)
 
-    # Set the model as part of the arrange.models module.
-    setattr(arrange_models, arrange_item_class_name, model)
+    # Set the model as part of the order.models module.
+    setattr(order_models, order_item_class_name, model)
             
     # Register admin model.
     admin.site.register(model, Admin)
         
-    # Add arrange method to base QuerySet.
-    setattr(QuerySet, 'arrange', managers.arrange)
+    # Add custom_order method to base QuerySet.
+    setattr(QuerySet, 'custom_order', managers.custom_order)
 
     # Return created model class.
     return model
 
-def is_arrangeable(cls):
+def is_orderable(cls):
     """
-    Checks if the provided class is specified as an arrangeable in settings.ARRANGE_MODELS.
+    Checks if the provided class is specified as an orderable in settings.ORDERABLE_MODELS.
     If it is return its settings.
     """
     labels = resolve_labels(cls)
-    if settings.ARRANGE_MODELS.has_key(labels['app_model']):
-        return settings.ARRANGE_MODELS[labels['app_model']]
-    if settings.ARRANGE_MODELS.has_key(labels['module_app_model']):
-        return settings.ARRANGE_MODELS[labels['module_app_model']]
+    if settings.ORDERABLE_MODELS.has_key(labels['app_model']):
+        return settings.ORDERABLE_MODELS[labels['app_model']]
+    if settings.ORDERABLE_MODELS.has_key(labels['module_app_model']):
+        return settings.ORDERABLE_MODELS[labels['module_app_model']]
     return False
 
 def resolve_labels(cls):
@@ -130,35 +130,35 @@ def resolve_labels(cls):
 
     return labels
 
-def resolve_arrange_item_class_name(cls):
+def resolve_order_item_class_name(cls):
     """
-    Returns an ArrangeItem class name for provided class.
+    Returns an OrderItem class name for provided class.
     """
-    return '%sArrangeItem' % cls._meta.object_name
+    return '%sOrderItem' % cls._meta.object_name
 
-def resolve_arrange_item_related_set_name(cls):
+def resolve_order_item_related_set_name(cls):
     """
-    Returns a reverse relation manager name to arrange items for class.
+    Returns a reverse relation manager name to order items for class.
     """
-    return ('%s_set' % resolve_arrange_item_class_name(cls)).lower()
+    return ('%s_set' % resolve_order_item_class_name(cls)).lower()
 
-def sanitize_arrangement(model):
+def sanitize_order(model):
     """
-    Sanitize arrangement values so eliminate conflicts and gaps.
+    Sanitize order values so eliminate conflicts and gaps.
     XXX: Early start, very ugly, needs work.
     """
-    to_arrange_dict = {}
+    to_order_dict = {}
 
-    arrange_field_names = []
+    order_field_names = []
     for field in model._meta.fields:
         if isinstance(field, models.IntegerField):
-            arrange_field_names.append(field.name)
+            order_field_names.append(field.name)
     
-    for field_name in arrange_field_names:
-        to_arrange_dict[field_name] = list(model.objects.all().order_by(field_name, '-timestamp'))
+    for field_name in order_field_names:
+        to_order_dict[field_name] = list(model.objects.all().order_by(field_name, '-timestamp'))
 
     updates = {}
-    for field_name, object_list in to_arrange_dict.items():
+    for field_name, object_list in to_order_dict.items():
         for i, obj in enumerate(object_list):
             position = i + 1
             if getattr(obj, field_name) != position:
