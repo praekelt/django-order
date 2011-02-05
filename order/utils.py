@@ -88,8 +88,8 @@ def create_order_classes(related_class, order_field_names):
     # Register admin model.
     admin.site.register(model, Admin)
         
-    # Add custom_order method to base QuerySet.
-    setattr(QuerySet, 'custom_order', managers.custom_order)
+    # Add user_order_by method to base QuerySet.
+    setattr(QuerySet, 'user_order_by', managers.user_order_by)
 
     # Return created model class.
     return model

@@ -1,8 +1,8 @@
 import order
 
-def custom_order(self, field):
+def user_order_by(self, field):
     """
-    Queryset method custom ordering by field.
+    Queryset method ordering objects by user ordering field.
     """
     # Get ordering model.
     orderitem_set = getattr(self.model, order.utils.resolve_order_item_related_set_name(self.model))
