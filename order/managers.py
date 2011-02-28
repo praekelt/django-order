@@ -5,7 +5,8 @@ def user_order_by(self, field):
     Queryset method ordering objects by user ordering field.
     """
     # Get ordering model.
-    orderitem_set = getattr(self.model, order.utils.resolve_order_item_related_set_name(self.model))
+    model_label = order.utils.resolve_labels('.'.join([self.model._meta.app_label, self.model._meta.object_name]))
+    orderitem_set = getattr(self.model, order.utils.resolve_order_item_related_set_name(model_label))
     order_model = orderitem_set.related.model
     
     # Resolve ordering model table name.
