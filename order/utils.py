@@ -2,30 +2,37 @@ from django.conf import settings
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import get_model
 from django.db.models.query import QuerySet
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
 
-from order import managers
-from order import models as order_models
+try:
+    from django.utils.decorators import method_decorator
+except ImportError:
+    method_decorator = lambda x: x
+try:
+    from django.views.decorators.csrf import csrf_protect
+except ImportError:
+    csrf_protect = lambda x: x
 
 csrf_protect_m = method_decorator(csrf_protect)
 
-def create_order_classes(related_class, order_field_names):
+def create_order_classes(model_label, order_field_names):
     """
     Create order model and admin class. 
     Add order model to order.models module and register admin class.
     Connect ordered_objects manager to related model.
     """
-    # Resolve labels for related class.
-    labels = resolve_labels(related_class)
+    # Seperate model_label into parts.
+    labels = resolve_labels(model_label)
+    # Get model class for model_label string.
+    model = get_model(labels['app'], labels['model'])
             
     # Dynamic Classes
     class OrderItemBase(models.Model):
         """
         Dynamic order class base.
         """
-        item = models.ForeignKey(related_class)
+        item = models.ForeignKey(model_label)
         timestamp = models.DateTimeField(auto_now=True)
     
         class Meta:
@@ -53,7 +60,7 @@ def create_order_classes(related_class, order_field_names):
             result = super(Admin, self).changelist_view(request, extra_context={
                 'add_url': add_url,
                 'list_url': list_url,
-                'related_opts': related_class._meta,
+                'related_opts': model._meta,
             })
 
             # XXX: Sanitize order on list save.
@@ -79,16 +86,14 @@ def create_order_classes(related_class, order_field_names):
     attrs.update(fields)
 
     # Create the class which automatically triggers Django model processing.
-    order_item_class_name = resolve_order_item_class_name(related_class)
+    order_item_class_name = resolve_order_item_class_name(labels)
     model = type(order_item_class_name, (OrderItemBase, ), attrs)
 
-    # Set the model as part of the order.models module.
-    setattr(order_models, order_item_class_name, model)
-            
     # Register admin model.
     admin.site.register(model, Admin)
         
     # Add user_order_by method to base QuerySet.
+    from order import managers
     setattr(QuerySet, 'user_order_by', managers.user_order_by)
 
     # Return created model class.
@@ -102,45 +107,37 @@ def is_orderable(cls):
     labels = resolve_labels(cls)
     if settings.ORDERABLE_MODELS.has_key(labels['app_model']):
         return settings.ORDERABLE_MODELS[labels['app_model']]
-    if settings.ORDERABLE_MODELS.has_key(labels['module_app_model']):
-        return settings.ORDERABLE_MODELS[labels['module_app_model']]
     return False
 
-def resolve_labels(cls):
+def resolve_labels(model_label):
     """
-    Returns app, model, app_model, module_app and module_app_model labels for provided class.
-    XXX: There has to be a better way to do this.
+    Seperate model_label into parts.
+    Returns dictionary with app, model and app_model strings.
     """
     labels = {}
 
-    # Resolve module.app label.
-    labels['module_app'] = cls.__module__.replace('.models', '')
-
     # Resolve app label.
-    labels['app'] = labels['module_app'].split('.')[-1]
+    labels['app'] = model_label.split('.')[0]
 
     # Resolve model label
-    labels['model'] = cls._meta.object_name
+    labels['model'] = model_label.split('.')[-1]
 
     # Resolve module_app_model label.
     labels['app_model'] = '%s.%s' % (labels['app'], labels['model'])
     
-    # Resolve module_app_model label.
-    labels['module_app_model'] = '%s.%s' % (labels['module_app'], labels['model'])
-
     return labels
 
-def resolve_order_item_class_name(cls):
+def resolve_order_item_class_name(labels):
     """
     Returns an OrderItem class name for provided class.
     """
-    return '%sOrderItem' % cls._meta.object_name
+    return '%sOrderItem' % labels['model']
 
-def resolve_order_item_related_set_name(cls):
+def resolve_order_item_related_set_name(labels):
     """
     Returns a reverse relation manager name to order items for class.
     """
-    return ('%s_set' % resolve_order_item_class_name(cls)).lower()
+    return ('%sorderitem_set' % labels['model']).lower()
 
 def sanitize_order(model):
     """
