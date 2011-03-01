@@ -14,7 +14,7 @@ def user_order_by(self, field, direction="+"):
 
     # Add ordering field as extra queryset fields.
     pk_name = self.model._meta.pk.attname
-    import ipdb;ipdb.set_trace()
+ 
     extra_select = {
         field: '(SELECT %s from %s WHERE item_id=%s.%s)' % (field, db_table, self.model._meta.db_table, pk_name)
     }
