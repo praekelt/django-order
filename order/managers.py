@@ -1,6 +1,6 @@
 import order
 
-def user_order_by(self, field, direction="+"):
+def user_order_by(self, field):
     """
     Queryset method ordering objects by user ordering field.
     """
@@ -18,5 +18,5 @@ def user_order_by(self, field, direction="+"):
     extra_select = {
         field: '(SELECT %s from %s WHERE item_id=%s.%s)' % (field, db_table, self.model._meta.db_table, pk_name)
     }
-    return self.extra(select=extra_select).order_by("%s%s.%s" % (direction,db_table,field) )
+    return self.extra(select=extra_select).order_by(field)
 
