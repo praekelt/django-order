@@ -1,4 +1,10 @@
 from setuptools import setup, find_packages
+from setuptools.command.test import test
+
+class TestRunner(test):
+    def run(self, *args, **kwargs):
+        from runtests import runtests
+        runtests()
 
 setup(
     name='django-order',
@@ -21,4 +27,6 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
     zip_safe=False,
+    test_suite = 'order.tests',
+    cmdclass={"test": TestRunner},
 )
