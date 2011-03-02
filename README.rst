@@ -14,7 +14,7 @@ Installation
 
 #. Add ``order`` to your ``INSTALLED_APPS`` setting.
    
-   **NOTE: Make sure to add ``order`` as the last app in your ``INSTALLED_APPS`` setting in order for order models and admin templates to be set correctly.**
+   **NOTE: Make sure to add order as the last app in your INSTALLED_APPS setting in order for models and admin templates to be set correctly.**
 
 #. Add an ``ORDERABLE_MODELS`` setting to your project's ``settings.py`` file. This settings is a dictionary containing model-app label strings for those models you want to make orderable as keys. Values take the form of a tupple containing field names on which you want the relevant model to be orderable. I.e. to make the ``User`` model orderable for hypothetical *home* and *users* pages, add the following ``ORDERABLE_MODELS`` setting::
 
@@ -29,7 +29,7 @@ Admin
 ~~~~~
 Once a model has been registered as orderable an additional *Order* object tool should be visible on the model's change list view.
 
-.. image:: http://www.28lines.com/wp-content/uploads/2011/03/django-order-tool.jpg
+.. image:: http://cloud.github.com/downloads/praekelt/django-order/django-order-tool.jpg
 
 You can order your items using this tool for each field name specified for you orderable model.
 
