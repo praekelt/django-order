@@ -35,4 +35,7 @@ You can order your items using this tool for each field name specified for you o
 Querysets
 ~~~~~~~~~
 
-With the ``order`` app installed all queryset objects will have a new ``user_order_by`` method. This method behaves exactly the same as Django's builtin ``order_by`` method except that it expects one of the settings defined field names for the model being queried. It will order the queryset based on the field you provide. 
+With the ``order`` app installed all queryset objects will have a new ``user_order_by`` method. This method behaves exactly the same as Django's builtin ``order_by`` method except that it expects one of the settings defined field names for the model being queried. It will order the queryset based on the field name you provide. For example, to order users for the *home* page in our hypothetical example you would use the method as follows::
+
+    User.objects.all().user_order_by('home')
+
