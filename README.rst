@@ -4,6 +4,8 @@ Django Order
 
 Provides an additional *order* tool within admin with which objects can be ordered by any number of arbitrary ``settings`` defined fields. A ``user_order_by`` queryset method allows for retrieval of objects as they were ordered by users via admin. 
 
+**NOTE: Be careful, django-order is under heavy development. Contributions much appreciated.**
+
 .. contents:: Contents
     :depth: 5
 

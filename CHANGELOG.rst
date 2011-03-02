@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.0.6
+-----
+#. Tests, docs, cleanup, descending ordering, bugfixes.
+
 0.0.5
 -----
 #. No longer use class_prepared signal.
