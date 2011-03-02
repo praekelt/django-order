@@ -3,14 +3,16 @@ from django.conf import settings
 
 if not settings.configured:
     settings.configure(
+        SITE_ID=0,
         DATABASE_ENGINE='sqlite3',
         INSTALLED_APPS=[
-            'django.contrib.auth',
-            'django.contrib.contenttypes',
+            'django.contrib.sites',
             'django.contrib.admin',
             'order',
         ],
-
+        ORDERABLE_MODELS = {
+            'sites.Site': ('ordering_field_1', 'ordering_field_2'),
+        }
     )
 
 from django.test.simple import run_tests
