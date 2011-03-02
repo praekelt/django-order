@@ -14,9 +14,14 @@ def user_order_by(self, field):
 
     # Add ordering field as extra queryset fields.
     pk_name = self.model._meta.pk.attname
- 
+
+    # If we have a descending query remove '-' from field name when quering.
+    sanitized_field = field.lstrip('-')
+
     extra_select = {
-        field: '(SELECT %s from %s WHERE item_id=%s.%s)' % (field, db_table, self.model._meta.db_table, pk_name)
+        sanitized_field: '(SELECT %s from %s WHERE item_id=%s.%s)' % (sanitized_field, db_table, self.model._meta.db_table, pk_name)
     }
-    return self.extra(select=extra_select).order_by(field)
+
+    # Use original field name when ordering to allow for descending.
+    return self.extra(select=extra_select).all().order_by(field)
 
