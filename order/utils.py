@@ -16,9 +16,10 @@ except ImportError:
 
 csrf_protect_m = method_decorator(csrf_protect)
 
+
 def create_order_classes(model_label, order_field_names):
     """
-    Create order model and admin class. 
+    Create order model and admin class.
     Add order model to order.models module and register admin class.
     Connect ordered_objects manager to related model.
     """
@@ -26,7 +27,7 @@ def create_order_classes(model_label, order_field_names):
     labels = resolve_labels(model_label)
     # Get model class for model_label string.
     model = get_model(labels['app'], labels['model'])
-            
+
     # Dynamic Classes
     class OrderItemBase(models.Model):
         """
@@ -34,11 +35,11 @@ def create_order_classes(model_label, order_field_names):
         """
         item = models.ForeignKey(model_label)
         timestamp = models.DateTimeField(auto_now=True)
-    
+
         class Meta:
             abstract = True
             app_label = 'order'
-   
+
     class Admin(admin.ModelAdmin):
         """
         Dynamic order admin class.
@@ -51,34 +52,41 @@ def create_order_classes(model_label, order_field_names):
             Return empty perms dict thus hiding the model from admin index.
             """
             return {}
-    
+
         @csrf_protect_m
         def changelist_view(self, request, extra_context=None):
-            list_url = reverse('admin:%s_%s_changelist' % (labels['app'], labels['model'].lower()))
-            add_url = reverse('admin:%s_%s_add' % (labels['app'], labels['model'].lower()))
+            list_url = reverse('admin:%s_%s_changelist' % (labels['app'], \
+                    labels['model'].lower()))
+            add_url = reverse('admin:%s_%s_add' % (labels['app'], \
+                    labels['model'].lower()))
 
-            result = super(Admin, self).changelist_view(request, extra_context={
-                'add_url': add_url,
-                'list_url': list_url,
-                'related_opts': model._meta,
-            })
+            result = super(Admin, self).changelist_view(
+                request,
+                extra_context={
+                    'add_url': add_url,
+                    'list_url': list_url,
+                    'related_opts': model._meta,
+                }
+            )
 
             # XXX: Sanitize order on list save.
-            #if (request.method == "POST" and self.list_editable and '_save' in request.POST):
+            # if (request.method == "POST" and self.list_editable and \
+            #        '_save' in request.POST):
             #    sanitize_order(self.model)
             return result
 
         def item_link(self, obj):
-            url = reverse('admin:%s_%s_change' % (labels['app'], labels['model'].lower()), args=(obj.item.id,))
+            url = reverse('admin:%s_%s_change' % (labels['app'], \
+                    labels['model'].lower()), args=(obj.item.id,))
             return '<a href="%s">%s</a>' % (url, str(obj.item))
         item_link.allow_tags = True
         item_link.short_description = 'Item'
-    
-    # Set up a dictionary to simulate declarations within a class. 
+
+    # Set up a dictionary to simulate declarations within a class.
     attrs = {
-        '__module__': 'order.models', 
+        '__module__': 'order.models',
     }
-    
+
     # Create provided order fields and add to attrs.
     fields = {}
     for field in order_field_names:
@@ -91,7 +99,7 @@ def create_order_classes(model_label, order_field_names):
 
     # Register admin model.
     admin.site.register(model, Admin)
-        
+
     # Add user_order_by method to base QuerySet.
     from order import managers
     setattr(QuerySet, 'user_order_by', managers.user_order_by)
@@ -99,18 +107,20 @@ def create_order_classes(model_label, order_field_names):
     # Return created model class.
     return model
 
+
 def is_orderable(cls):
     """
-    Checks if the provided class is specified as an orderable in settings.ORDERABLE_MODELS.
-    If it is return its settings.
+    Checks if the provided class is specified as an orderable in
+    settings.ORDERABLE_MODELS. If it is return its settings.
     """
     if not getattr(settings, 'ORDERABLE_MODELS', None):
         return False
 
     labels = resolve_labels(cls)
-    if settings.ORDERABLE_MODELS.has_key(labels['app_model']):
+    if labels['app_model'] in settings.ORDERABLE_MODELS:
         return settings.ORDERABLE_MODELS[labels['app_model']]
     return False
+
 
 def resolve_labels(model_label):
     """
@@ -127,8 +137,9 @@ def resolve_labels(model_label):
 
     # Resolve module_app_model label.
     labels['app_model'] = '%s.%s' % (labels['app'], labels['model'])
-    
+
     return labels
+
 
 def resolve_order_item_class_name(labels):
     """
@@ -136,11 +147,13 @@ def resolve_order_item_class_name(labels):
     """
     return '%sOrderItem' % labels['model']
 
+
 def resolve_order_item_related_set_name(labels):
     """
     Returns a reverse relation manager name to order items for class.
     """
     return ('%sorderitem_set' % labels['model']).lower()
+
 
 def sanitize_order(model):
     """
@@ -153,18 +166,19 @@ def sanitize_order(model):
     for field in model._meta.fields:
         if isinstance(field, models.IntegerField):
             order_field_names.append(field.name)
-    
+
     for field_name in order_field_names:
-        to_order_dict[field_name] = list(model.objects.all().order_by(field_name, '-timestamp'))
+        to_order_dict[field_name] = list(model.objects.all().order_by(\
+                field_name, '-timestamp'))
 
     updates = {}
     for field_name, object_list in to_order_dict.items():
         for i, obj in enumerate(object_list):
             position = i + 1
             if getattr(obj, field_name) != position:
-                if updates.has_key(obj):
+                if obj in updates:
                     updates[obj][field_name] = position
-                else:    
+                else:
                     updates[obj] = {field_name: position}
 
     for obj, fields in updates.items():
