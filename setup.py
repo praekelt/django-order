@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 from setuptools.command.test import test
 
-class TestRunner(test):
-    def run(self, *args, **kwargs):
-        from runtests import runtests
-        runtests()
+def run_tests(self):
+    from setuptest.runtests import runtests
+    return runtests(self)
+test.run_tests = run_tests
+
 
 setup(
     name='django-order',
@@ -15,8 +16,12 @@ setup(
     author_email='dev@praekelt.com',
     license='BSD',
     url='http://github.com/praekelt/django-order',
-    packages = find_packages(),
+    packages=find_packages(),
     include_package_data=True,
+    test_suite="order.tests",
+    tests_require=[
+        'django-setuptest',
+    ],
     classifiers = [
         "Programming Language :: Python",
         "License :: OSI Approved :: BSD License",
@@ -27,6 +32,4 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
     zip_safe=False,
-    test_suite = 'order.tests',
-    cmdclass={"test": TestRunner},
 )
