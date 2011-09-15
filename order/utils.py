@@ -95,17 +95,44 @@ def create_order_classes(model_label, order_field_names):
 
     # Create the class which automatically triggers Django model processing.
     order_item_class_name = resolve_order_item_class_name(labels)
-    model = type(order_item_class_name, (OrderItemBase, ), attrs)
+    order_model = type(order_item_class_name, (OrderItemBase, ), attrs)
 
     # Register admin model.
-    admin.site.register(model, Admin)
+    admin.site.register(order_model, Admin)
 
     # Add user_order_by method to base QuerySet.
     from order import managers
     setattr(QuerySet, 'user_order_by', managers.user_order_by)
 
     # Return created model class.
-    return model
+    return order_model
+
+
+def create_order_objects(model, order_fields):
+    """
+    Create order items for objects already present in the database.
+    """
+    for rel in model._meta.get_all_related_objects():
+        rel_model = rel.model
+        if rel_model.__module__ == 'order.models':
+
+            objs = model.objects.all()
+            values = {}
+            for order_field in order_fields:
+                order_objs = rel_model.objects.all().order_by('-%s' \
+                        % order_field)
+                try:
+                    values[order_field] = getattr(order_objs[0], \
+                            order_field) + 1
+                except IndexError:
+                    values[order_field] = 1
+            for obj in objs:
+                try:
+                    rel_model.objects.get(item=obj)
+                except rel_model.DoesNotExist:
+                    rel_model.objects.create(item=obj, **values)
+                    for key in values:
+                        values[key] += 1
 
 
 def is_orderable(cls):
