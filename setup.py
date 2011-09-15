@@ -11,6 +11,9 @@ setup(
     url='http://github.com/praekelt/django-order',
     packages=find_packages(),
     include_package_data=True,
+    install_requires=[
+        'django-object-tools',
+    ],
     test_suite="setuptest.SetupTestSuite",
     tests_require=[
         'django-setuptest>=0.0.6',
