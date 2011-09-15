@@ -11,6 +11,7 @@ class ManagerTestCase(TestCase):
         # Resolve ordering models and field names.
         order_model = get_models(models)[0]
         ordered_model = order_model.item.field.rel.to
+        ordered_model.objects.all().delete()
 
         field_names = []
         for field in order_model._meta.fields:
