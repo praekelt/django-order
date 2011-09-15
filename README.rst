@@ -4,8 +4,6 @@ Django Order
 
 Provides an additional *order* tool within admin with which objects can be ordered by any number of arbitrary ``settings`` defined fields. A ``user_order_by`` queryset method allows for retrieval of objects as they were ordered by users via admin. 
 
-**NOTE: Be careful, django-order is under heavy development. Contributions much appreciated.**
-
 .. contents:: Contents
     :depth: 5
 
@@ -14,10 +12,10 @@ Installation
 
 #. Install or add django-order to your Python path.
 
+#. Install ``django-object-tools`` as described `here <http://pypi.python.org/pypi/django-object-tools#id3>`_.
+
 #. Add ``order`` to your ``INSTALLED_APPS`` setting.
    
-   **NOTE: Make sure to add order as the last app in your INSTALLED_APPS setting in order for models and admin templates to be set correctly.**
-
 #. Add an ``ORDERABLE_MODELS`` setting to your project's ``settings.py`` file. This settings is a dictionary containing model-app label strings for those models you want to make orderable as keys. Values take the form of a tupple containing field names on which you want the relevant model to be orderable. I.e. to make the ``User`` model orderable for hypothetical *home* and *users* pages, add the following ``ORDERABLE_MODELS`` setting::
 
     ORDERABLE_MODELS = {
