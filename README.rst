@@ -10,7 +10,7 @@ Provides an additional *order* tool within admin with which objects can be order
 Installation
 ------------
 
-#. Install or add django-order to your Python path.
+#. Install or add ``django-order`` to your Python path.
 
 #. Install ``django-object-tools`` as described `here <http://pypi.python.org/pypi/django-object-tools#id3>`_.
 
